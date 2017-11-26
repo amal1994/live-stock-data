@@ -6,10 +6,6 @@ import { SocketHandlerService } from './socket-handler.service';
 import { StockService } from './stock.service';
 import { AppComponent } from './app.component';
 
-//datatable plugin import
-import { Ng2TableModule } from 'ng2-table/ng2-table';
-import { PaginationModule } from 'ng2-bootstrap/ng2-bootstrap'; 
-import { TabsModule } from 'ng2-bootstrap/ng2-bootstrap';
 
 
 @NgModule({
@@ -18,10 +14,7 @@ import { TabsModule } from 'ng2-bootstrap/ng2-bootstrap';
   ],
   imports: [
     BrowserModule,
-    FormsModule,
-    Ng2TableModule,
-    PaginationModule.forRoot(),
-    TabsModule
+    FormsModule
   ],
   providers: [ SocketHandlerService, StockService ],
   bootstrap: [AppComponent]
