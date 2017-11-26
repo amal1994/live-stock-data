@@ -6,6 +6,7 @@ How to run the application
 1)Download the repository 
 
 2)Goto the folder location
+
 3)Run npm install -g @angular/cli
 
 4)Run npm install to install node modules for this application
