@@ -6,4 +6,5 @@ export class Stock{
     isFirstValue:boolean;
     isCurrentValueMore:boolean = false;
     isCurrentValueLess:boolean = false;
+    priceHistory:Array<any>;
 }

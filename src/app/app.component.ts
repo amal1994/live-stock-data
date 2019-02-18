@@ -1,8 +1,15 @@
+// angular default imports
 import { Component } from '@angular/core';
+
+// app constants and models
 import { Stock } from './stock.model';
+import { SharedConstants } from './shared/constants/shared.constants';
+import { MarketPrice } from './shared/models/market-price.model';
+
+// app services
 import { SocketHandlerService } from './socket-handler.service';
 import { StockService } from './stock.service';
-
+import { SharedService } from './shared/services/shared.service';
 
 @Component({
   selector: 'app-root',
@@ -10,11 +17,12 @@ import { StockService } from './stock.service';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  title = 'app';
+
   stockArray = [];
-
-
-  constructor(private shService: StockService) {
+  timeConstants = SharedConstants.TIME_CONSTANTS;
+  marketPositions = [];
+  selectedStock;
+  constructor(private shService: StockService, private sharedService: SharedService) {
     //calling stock service to get stocks in [name,price] format
     shService.messages.subscribe(msg => {
 
@@ -25,54 +33,43 @@ export class AppComponent {
   //main function to handle stocks
   handleStocks(stockData) {
     //stockData is the current stock sent by websocket
-    stockData.forEach(element => {
-
-      if (this.isStockAlreadyExists(element, this.stockArray)) {
-        //get index of stock
-        let indexOfStock = this.getStockIndexInArray(element, this.stockArray);
-
+    stockData.forEach(currentStock => {
+      // check if stock already exists
+      let indexOfStock = this.getStockIndexInArray(currentStock, this.stockArray);
+      if (indexOfStock > -1) {
         //check if the current value of stock is higher than previous
-        if (this.stockArray[indexOfStock].price - element[1] < 0) {
+        if (this.stockArray[indexOfStock].price - currentStock[1] < 0) {
 
           this.stockArray[indexOfStock].isCurrentValueMore = true;
           this.stockArray[indexOfStock].isCurrentValueLess = false;
 
         }
-        else if (this.stockArray[indexOfStock].price - element[1] > 0) {
+        else if (this.stockArray[indexOfStock].price - currentStock[1] > 0) {
           this.stockArray[indexOfStock].isCurrentValueMore = false;
           this.stockArray[indexOfStock].isCurrentValueLess = true;
 
         }
         //updating price of stock
-        this.stockArray[indexOfStock].price = element[1];
+        this.stockArray[indexOfStock].price = currentStock[1];
         //updating updation time for stock
         this.stockArray[indexOfStock].lastUpdated = this.setStockUpdateTime(this.stockArray[indexOfStock]);
-        this.stockArray[indexOfStock].lastUpdatedTime = this.formatTimeLocal();
+        this.stockArray[indexOfStock].lastUpdatedTime = this.sharedService.formatTimeLocal();
+        this.stockArray[indexOfStock].priceHistory.push(this.createShare(currentStock));
       }
       else {
         //if stock is a new entry, then creating it's entry in array
         let stock = new Stock();
-        stock.name = element[0];
-        stock.price = element[1];
+        stock.name = currentStock[0];
+        stock.price = currentStock[1];
         stock.isFirstValue = true;
-        stock.lastUpdatedTime = this.formatTimeLocal();
-        stock.lastUpdated = this.formatAMPM();
+        stock.lastUpdatedTime = this.sharedService.formatTimeLocal();
+        stock.lastUpdated = this.sharedService.formatAMPM();
+        stock.priceHistory = [];
+        stock.priceHistory.push(this.createShare(currentStock));
         this.stockArray.push(stock);
       }
     });
 
-  }
-
-  //to check if the stock already exists in the Stock array
-  isStockAlreadyExists(obj, list) {
-    var i;
-    for (i = 0; i < list.length; i++) {
-      if (list[i].name == obj[0]) {
-        return true;
-      }
-    }
-
-    return false;
   }
 
   //get index of stock in stock array
@@ -81,24 +78,6 @@ export class AppComponent {
     return indexOfStock;
   }
 
-  //convert default time in the format hh:mm:ss
-  formatTimeLocal() {
-    let dt = new Date();
-    return dt.toLocaleTimeString();
-  }
-
-  //convert time in 12 hour format
-  formatAMPM() {
-    let date = new Date();
-    let hours = date.getHours();
-    let minutes: any = date.getMinutes();
-    let ampm = hours >= 12 ? 'pm' : 'am';
-    hours = hours % 12;
-    hours = hours ? hours : 12; // the hour '0' should be '12'
-    minutes = minutes < 10 ? '0' + minutes : minutes;
-    var strTime = hours + ':' + minutes + ' ' + ampm;
-    return strTime;
-  }
 
   //update stock time as per current entry
   setStockUpdateTime(stock) {
@@ -111,11 +90,23 @@ export class AppComponent {
     //check if the newest entry time is same as last updated time
     if (h == stockTimeHour && m == stockTimeMinutes) {
       //currently this value is hardcoded - can be made dynamic
-      return "Few seconds ago";
+      return this.timeConstants.UPDATED_NOW;
     }
     else {
 
-      return this.formatAMPM();
+      return this.sharedService.formatAMPM();
     }
+  }
+
+  showCurrentStockGraph(currentStock) {
+    this.marketPositions = currentStock.priceHistory;
+    this.selectedStock = currentStock.name;
+  }
+
+  createShare(stock) {
+    let share = new MarketPrice();
+    share.date = new Date();
+    share.open = stock[1];
+    return share;
   }
 }

@@ -3,25 +3,49 @@
     <h2 class="text-center">
       Live Stock Data
     </h2>
-    <table class="table table-bordered">
-      <thead>
-        <tr>
-          <th>Serial No.</th>
-          <th><i class="fa fa-bar-chart" aria-hidden="true"></i>Ticker</th>
-          <th><i class="fa fa-money text-success" aria-hidden="true"></i>Price</th>
-          <th><i class="fa fa-clock-o" aria-hidden="true"></i>Last Updated</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Dynamically handling stock data -->
-        <tr *ngFor="let currentStock of stockArray,let i = index">
-          <th scope="row">{{i+1}}</th>
-          <td>{{currentStock.name}}</td>
-          <!-- Assigning background color based on current stock value -->
-          <td [ngClass]="{'bg-success text-white': currentStock?.isCurrentValueMore, 'bg-danger text-white': currentStock?.isCurrentValueLess}">{{currentStock.price}}</td>
-          <td>{{currentStock?.lastUpdated}}</td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="row">
+      <div class="col-md-5">
+        <h3 class="text-center" *ngIf="marketPositions?.length" >
+          Selected Stock - <strong>{{selectedStock}}</strong>
+        </h3>
+        <app-build-chart *ngIf="marketPositions?.length;else noGraph" [marketStatus]="marketPositions">
+        </app-build-chart>
+        <ng-template #noGraph>
+          <div class="no-graph-container">
+            <img src="../assets/img/download.png" alt="">
+            <span class="helper-text">
+              Please click on any row to get historical data for any stock.
+            </span>
+          </div>
+        </ng-template>
+      </div>
+      <div class="col-md-7">
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th><i class="fa fa-barcode"></i> Serial No.</th>
+              <th><i class="fa fa-bar-chart" aria-hidden="true"></i>Ticker</th>
+              <th><i class="fa fa-money" aria-hidden="true"></i>Price</th>
+              <th><i class="fa fa-clock-o" aria-hidden="true"></i>Last Updated</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Dynamically handling stock data -->
+            <tr (click)="showCurrentStockGraph(currentStock)" class="clickable" *ngFor="let currentStock of stockArray,let i = index">
+              <th scope="row">{{i+1}}</th>
+              <td>{{currentStock.name}}</td>
+              <!-- Assigning background color based on current stock value -->
+              <td class="text-white" [ngClass]="{'bg-success ': currentStock?.isCurrentValueMore, 
+                  'bg-danger ': currentStock?.isCurrentValueLess}">
+                <i class="fa" [ngClass]="{'fa-caret-up text-success': currentStock?.isCurrentValueMore, 
+                    'fa-caret-down text-danger': currentStock?.isCurrentValueLess}"></i>
+                {{currentStock.price}}
+              </td>
+              <td>{{currentStock?.lastUpdated}}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </div>
