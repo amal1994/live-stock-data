@@ -59,3 +59,12 @@ html,body{
     font-size: 18px;
     font-weight: 600;
 }
+
+.image-container{
+    max-width: 200px;
+    margin-bottom: 15px;
+}
+
+.image-container img{
+    width: 100%;
+}
